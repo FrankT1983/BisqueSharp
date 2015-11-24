@@ -1,0 +1,19 @@
+﻿<Window x:Class="BisqueWebTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BisqueWebTest"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <DockPanel LastChildFill="True">
+        <Button DockPanel.Dock="Top" Click="ClickedLogin">Login</Button>
+        <Button DockPanel.Dock="Top" Click="Button_Click">DumpImages</Button>
+        <Button DockPanel.Dock="Top" Click="ClickedUpload">Upload</Button>
+        <Button DockPanel.Dock="Top" Click="ClickedGetMetaData">GetMetaData</Button>
+        <Button DockPanel.Dock="Top" Click="ClickedPutMetaData">PutMetaData</Button>
+        <ScrollViewer>
+            <TextBlock x:Name="OutputText" > Hallo</TextBlock>
+        </ScrollViewer>
+    </DockPanel>
+</Window>
