@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BisqueImageResource.cs" />
     <Compile Include="BisqueSession.cs" />
     <Compile Include="BisqueXmlHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

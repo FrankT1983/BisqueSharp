@@ -12,6 +12,7 @@
         <Button DockPanel.Dock="Top" Click="ClickedUpload">Upload</Button>
         <Button DockPanel.Dock="Top" Click="ClickedGetMetaData">GetMetaData</Button>
         <Button DockPanel.Dock="Top" Click="ClickedPutMetaData">PutMetaData</Button>
+        <Button DockPanel.Dock="Top" Click="ClickedDownload">DownloadLastFile</Button>
         <ScrollViewer>
             <TextBlock x:Name="OutputText" > Hallo</TextBlock>
         </ScrollViewer>

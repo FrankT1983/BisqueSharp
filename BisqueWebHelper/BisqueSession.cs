@@ -1,5 +1,5 @@
-﻿namespace BisqueWebTest
-{
+﻿namespace BisqueWebHelper
+{  
     using RestSharp;
     using System;
     using System.Collections.Generic;
@@ -35,7 +35,8 @@
             var request = new RestRequest("auth_service/login_handler", Method.POST);
             request.AddParameter("login", "bisque"); // adds to POST or URL querystring based on Method
             request.AddParameter("password", "bisque"); // adds to POST or URL querystring based on Method
-            var response = client.Execute(request);           
+            var response = client.Execute(request);
+            CheckResponse(response);
 
             return ( response.ResponseUri!=null && response.ResponseUri.OriginalString.Contains("client_service"));
         }
@@ -48,6 +49,7 @@
         {
             var requestForImages = new RestRequest("data_service/image", Method.GET);
             var response = client.Execute(requestForImages);
+            CheckResponse(response);
             var content = response.Content; // raw content as string
 
             return BisqueXmlHelper.ImagesFromXml(content);
@@ -62,63 +64,105 @@
             var request = new RestRequest("import/transfer", Method.POST);            
             request.AddFile("receipt[receipt_file]", File.ReadAllBytes(path), Path.GetFileName(path), "application/octet-stream");
             var response = client.Execute(request);
+            CheckResponse(response);
             var content = response.Content; // raw content as string
         }
 
+        /// <summary>
+        /// Downloads the specified file to a given folder.
+        /// </summary>
+        /// <param name="file">The file on the bisque server.</param>
+        /// <param name="destinationFolder">The folder to download it to.</param>        
+        public void DownloadFile(BisqueImageResource file, string destinationFolder)
+        {
+            var request = new RestRequest("image_service/" + file.Id, Method.GET);
+            var response = client.Execute(request);            
+            CheckResponse(response);
+            var content = response.Content; // raw content as string
+
+            byte[] fileData = response.RawBytes;
+            string fileName = destinationFolder.TrimEnd('\\') + "\\" + file.ImageName;
+
+            using (var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            {
+                try
+                {                 
+                    fileStream.Write(fileData, 0, fileData.Length);
+                    fileStream.Close();
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Download failed : " + e);
+                }
+            }
+        }        
+
+        /// <summary>
+        /// Gets the metadata that is embedded in the file and could be extracted by bisque (bioformats).
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns>The Metadata as an xml string. </returns>
         public string GetEmbeddedMetaData(BisqueImageResource file)
         {
             Debug.WriteLine(file.Id);
             var request = new RestRequest("image_service/"+ file.Id, Method.GET);
             request.AddParameter("meta",null);
             var response = client.Execute(request);
-            var content = response.Content; // raw content as string
-            return content;
-
+            CheckResponse(response);
+            return response.Content;
         }
 
+        /// <summary>
+        /// Gets the bisque - metadata / tags that belonge to the file.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns>The Metadata as an xml string. </returns>
         public string GetMetaData(BisqueImageResource file)
         {            
             var request = new RestRequest("data_service/" + file.Id +"/tag", Method.GET);            
             var response = client.Execute(request);
-            var content = response.Content; // raw content as string
-
-            Debug.WriteLine(content);
-            return content;
+            CheckResponse(response);
+            return response.Content;
         }
 
+        /// <summary>
+        /// Gets the image meta data that are allways created, like filename and upload date.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns>The Metadata as an xml string. </returns>
         public string GetImageStandardData(BisqueImageResource file)
         {
             var request = new RestRequest("data_service/" + file.Id, Method.GET);
             var response = client.Execute(request);
-            var content = response.Content; // raw content as string
-
-            Debug.WriteLine(content);
-            return content;
+            CheckResponse(response);            
+            return response.Content;
         }
 
-        public string SetMetaData(BisqueImageResource file, string metaDataXml)
+        /// <summary>
+        /// Sets the bisque metadata / tags of a file.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <param name="metaDataXml">The meta data XML.</param>
+        /// <returns></returns>
+        public void SetMetaData(BisqueImageResource file, string metaDataXml)
         {
             var request = new RestRequest("data_service/" + file.Id, Method.PUT);                       
             request.AddHeader("content-type", "text/xml");
             request.AddParameter("text/xml", metaDataXml, ParameterType.RequestBody);
                        
             var response = client.Execute(request);
+            CheckResponse(response);
             var content = response.Content; // raw content as string
 
-            Debug.WriteLine(response.StatusDescription + " " + content);
-            return content;
+            //Debug.WriteLine(response.StatusDescription + " " + content);            
         }
 
-        public string GetFileData(BisqueImageResource file)
-        {
-            var request = new RestRequest("image_service/" + file.Id, Method.GET);
-            var response = client.Execute(request);
-            var content = response.Content; // raw content as string
-
-            Debug.WriteLine(content);
-            return content;
-        }
-
+        /// <summary>
+        /// Gets an XML document containing the current tags of an image. 
+        /// This XML document can be used for tag manupulation.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns>The xml document.</returns>
         public XmlDocument GetXmlDocumentForTagManupulation(BisqueImageResource file)
         {
             var xml = this.GetImageStandardData(file);
@@ -131,18 +175,32 @@
             return xmlDoc;
         }
 
+        /// <summary>
+        /// Checks if the response of an request was ok.
+        /// From <see cref="https://github.com/restsharp/RestSharp/wiki/Recommended-Usage"/>.
+        /// </summary>
+        /// <param name="response">The response to check.</param>        
+        /// <exception cref="ApplicationException">Response contained an error.</exception>
+        private static void CheckResponse(IRestResponse response)
+        {
+            if (response.ErrorException != null)
+            {
+                const string message = "Error retrieving response.  Check inner details for more info.";
+                var exception = new ApplicationException(message, response.ErrorException);
+                throw exception;
+            }
+        }
+
+        /// <summary>
+        /// Get all tags that are currently on the file and add it to the xml document.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <param name="xmlDoc">The XML document.</param>
         private void AddExitingTagsToXml(BisqueImageResource file, XmlDocument xmlDoc)
         {
             var metaData = this.GetMetaData(file);
             var tags = BisqueXmlHelper.TagsFromXml(metaData);
             BisqueXmlHelper.WriteTagsToXml(xmlDoc, tags);
         }
-    }
-    
-    public struct BisqueImageResource
-    {
-        public string ImageName;
-        public string URI;
-        public string Id;
-    }
+    }  
 }

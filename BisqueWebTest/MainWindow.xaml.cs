@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BisqueWebHelper;
+using System;
 using System.Linq;
 using System.Windows;
 
@@ -49,7 +50,7 @@ namespace BisqueWebTest
             var metaData = this.session.GetMetaData(file);
             var tags = BisqueXmlHelper.TagsFromXml(metaData);
 
-            this.OutputText.Text = "Images:\n";
+            this.OutputText.Text = "Metadata for last file (" + file.ImageName + ") :\n";
             foreach (var tag in tags)
             {                
                 this.OutputText.Text += tag.Item1 + " " + tag.Item2 + "\n";
@@ -63,6 +64,14 @@ namespace BisqueWebTest
             var xml = this.session.GetXmlDocumentForTagManupulation(file);
             BisqueXmlHelper.WriteTagsToXml(xml, new Tuple<string, string>("fromCode", "Foo"));
             this.session.SetMetaData(file, BisqueXmlHelper.XmlDocToString(xml) );            
-        }      
+        }
+
+        private void ClickedDownload(object sender, RoutedEventArgs e)
+        {
+            var file = this.session.GetImages().Last();
+            this.OutputText.Text = "downloading (sync) : " + file.ImageName + "\n";
+            this.session.DownloadFile(file, "c:\\tmp\\");
+            this.OutputText.Text += "download complette";
+        }
     }
 }

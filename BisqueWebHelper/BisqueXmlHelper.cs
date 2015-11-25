@@ -1,4 +1,4 @@
-﻿namespace BisqueWebTest
+﻿namespace BisqueWebHelper
 {
     using System;
     using System.Collections.Generic;
