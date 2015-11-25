@@ -6,6 +6,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Xml;
+    using Tools;
 
     /// <summary>
     /// Simple class for using bisque.
@@ -36,7 +37,7 @@
             request.AddParameter("login", "bisque"); // adds to POST or URL querystring based on Method
             request.AddParameter("password", "bisque"); // adds to POST or URL querystring based on Method
             var response = client.Execute(request);
-            CheckResponse(response);
+            RestSharpHelpers.CheckResponse(response);
 
             return ( response.ResponseUri!=null && response.ResponseUri.OriginalString.Contains("client_service"));
         }
@@ -45,14 +46,10 @@
         /// Gets all the images belonging to the logged-in user.
         /// </summary>
         /// <returns>The list of images.</returns>
-        public IEnumerable<BisqueImageResource> GetImages()
+        public IEnumerable<BisqueImage> GetImages()
         {
-            var requestForImages = new RestRequest("data_service/image", Method.GET);
-            var response = client.Execute(requestForImages);
-            CheckResponse(response);
-            var content = response.Content; // raw content as string
-
-            return BisqueXmlHelper.ImagesFromXml(content);
+            var response = DataServiceHelper.GetAllImages(this.client);
+            return BisqueImage.ImagesFromResources(BisqueXmlHelper.ImagesFromXml(response.Content), this);
         }
 
         /// <summary>
@@ -64,7 +61,7 @@
             var request = new RestRequest("import/transfer", Method.POST);            
             request.AddFile("receipt[receipt_file]", File.ReadAllBytes(path), Path.GetFileName(path), "application/octet-stream");
             var response = client.Execute(request);
-            CheckResponse(response);
+            RestSharpHelpers.CheckResponse(response);
             var content = response.Content; // raw content as string
         }
 
@@ -76,8 +73,8 @@
         public void DownloadFile(BisqueImageResource file, string destinationFolder)
         {
             var request = new RestRequest("image_service/" + file.Id, Method.GET);
-            var response = client.Execute(request);            
-            CheckResponse(response);
+            var response = client.Execute(request);
+            RestSharpHelpers.CheckResponse(response);
             var content = response.Content; // raw content as string
 
             byte[] fileData = response.RawBytes;
@@ -104,11 +101,13 @@
         /// <returns>The Metadata as an xml string. </returns>
         public string GetEmbeddedMetaData(BisqueImageResource file)
         {
-            Debug.WriteLine(file.Id);
-            var request = new RestRequest("image_service/"+ file.Id, Method.GET);
-            request.AddParameter("meta",null);
-            var response = client.Execute(request);
-            CheckResponse(response);
+            var response = ImageServiceHelper.QueryWithParameter(this.client, file.Id, ImageServiceParameters.MetaData);                                   
+            return response.Content;
+        }
+
+        public string GetFileInfo(BisqueImageResource file)
+        {
+            var response = ImageServiceHelper.QueryWithParameter(this.client, file.Id, ImageServiceParameters.Info);
             return response.Content;
         }
 
@@ -121,7 +120,7 @@
         {            
             var request = new RestRequest("data_service/" + file.Id +"/tag", Method.GET);            
             var response = client.Execute(request);
-            CheckResponse(response);
+            RestSharpHelpers.CheckResponse(response);
             return response.Content;
         }
 
@@ -134,7 +133,7 @@
         {
             var request = new RestRequest("data_service/" + file.Id, Method.GET);
             var response = client.Execute(request);
-            CheckResponse(response);            
+            RestSharpHelpers.CheckResponse(response);            
             return response.Content;
         }
 
@@ -151,7 +150,7 @@
             request.AddParameter("text/xml", metaDataXml, ParameterType.RequestBody);
                        
             var response = client.Execute(request);
-            CheckResponse(response);
+            RestSharpHelpers.CheckResponse(response);
             var content = response.Content; // raw content as string
 
             //Debug.WriteLine(response.StatusDescription + " " + content);            
@@ -174,23 +173,7 @@
 
             return xmlDoc;
         }
-
-        /// <summary>
-        /// Checks if the response of an request was ok.
-        /// From <see cref="https://github.com/restsharp/RestSharp/wiki/Recommended-Usage"/>.
-        /// </summary>
-        /// <param name="response">The response to check.</param>        
-        /// <exception cref="ApplicationException">Response contained an error.</exception>
-        private static void CheckResponse(IRestResponse response)
-        {
-            if (response.ErrorException != null)
-            {
-                const string message = "Error retrieving response.  Check inner details for more info.";
-                var exception = new ApplicationException(message, response.ErrorException);
-                throw exception;
-            }
-        }
-
+        
         /// <summary>
         /// Get all tags that are currently on the file and add it to the xml document.
         /// </summary>

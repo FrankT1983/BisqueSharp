@@ -45,11 +45,9 @@ namespace BisqueWebTest
         private void ClickedGetMetaData(object sender, RoutedEventArgs e)
         {
             var file = this.session.GetImages().Last();
-            this.session.GetEmbeddedMetaData(file);
-
-            var metaData = this.session.GetMetaData(file);
+            var metaData = file.MetaData;          
+            
             var tags = BisqueXmlHelper.TagsFromXml(metaData);
-
             this.OutputText.Text = "Metadata for last file (" + file.ImageName + ") :\n";
             foreach (var tag in tags)
             {                
@@ -59,18 +57,17 @@ namespace BisqueWebTest
 
         private void ClickedPutMetaData(object sender, RoutedEventArgs e)
         {
-            var file = this.session.GetImages().Last();
-
-            var xml = this.session.GetXmlDocumentForTagManupulation(file);
+            var file = this.session.GetImages().Last();            
+            var xml = file.GetXmlTagDocument();          
             BisqueXmlHelper.WriteTagsToXml(xml, new Tuple<string, string>("fromCode", "Foo"));
-            this.session.SetMetaData(file, BisqueXmlHelper.XmlDocToString(xml) );            
+            file.SetTagsFromDocument(xml);
         }
 
         private void ClickedDownload(object sender, RoutedEventArgs e)
         {
             var file = this.session.GetImages().Last();
-            this.OutputText.Text = "downloading (sync) : " + file.ImageName + "\n";
-            this.session.DownloadFile(file, "c:\\tmp\\");
+            this.OutputText.Text = "downloading (sync) : " + file.ImageName + "\n";            
+            file.Download("c:\\tmp\\");
             this.OutputText.Text += "download complette";
         }
     }
