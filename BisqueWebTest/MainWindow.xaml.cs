@@ -70,5 +70,11 @@ namespace BisqueWebTest
             file.Download("c:\\tmp\\");
             this.OutputText.Text += "download complette";
         }
+
+        private void ClickedSlice(object sender, RoutedEventArgs e)
+        {
+            var file = this.session.GetImages().Last();
+            var bytes = file.GetSlice(1,1,1,1);
+        }
     }
 }

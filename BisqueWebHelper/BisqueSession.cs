@@ -26,6 +26,14 @@
         {                                  
         }
 
+        public RestClient Client
+        {
+            get
+            {
+                return this.client;
+            }
+        }
+
         /// <summary>
         /// Logins this instance.
         /// This will currently use the Demo-VM-Credentials.
@@ -69,8 +77,9 @@
         /// Downloads the specified file to a given folder.
         /// </summary>
         /// <param name="file">The file on the bisque server.</param>
-        /// <param name="destinationFolder">The folder to download it to.</param>        
-        public void DownloadFile(BisqueImageResource file, string destinationFolder)
+        /// <param name="destinationFolder">The folder to download it to.</param>
+        /// <returns> The path to the file downloaded.</returns>
+        public string DownloadFile(BisqueImageResource file, string destinationFolder)
         {
             var request = new RestRequest("image_service/" + file.Id, Method.GET);
             var response = client.Execute(request);
@@ -92,6 +101,8 @@
                     Debug.WriteLine("Download failed : " + e);
                 }
             }
+
+            return fileName;
         }        
 
         /// <summary>

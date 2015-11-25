@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-
+﻿
 namespace BisqueWebHelper
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Xml;
+
+    [DebuggerDisplay("{this.ImageName} {this.URI}")]
     public class BisqueImage
     {
         private readonly BisqueImageResource resource;
@@ -69,9 +72,19 @@ namespace BisqueWebHelper
             this.usedSession.SetMetaData(this.resource, BisqueXmlHelper.XmlDocToString(xml));            
         }
 
-        public void Download(string v)
+        public string Download(string v)
         {
-            this.usedSession.DownloadFile(this.resource, "c:\\tmp\\");
+            return this.usedSession.DownloadFile(this.resource, "c:\\tmp\\");
+        }
+
+        /// <summary>
+        /// Gets a specific slice of the image.
+        /// </summary>
+        /// <returns> The slice in bigtiff format in a byte[]</returns>
+        public byte[] GetSlice(int x, int y, int z, int t)
+        {
+            var request = ImageServiceHelper.QueryWithParameter(this.usedSession.Client, this.resource.Id, ImageServiceParameters.Slice, ImageServiceParameters.SliceParameter(x,y,z,t));
+            return request.RawBytes;
         }
     }
 }
