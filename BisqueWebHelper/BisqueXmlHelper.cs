@@ -73,6 +73,48 @@
             }
         }
 
+        internal static IEnumerable<BisqueAnalysis> AnalysisModulesFromXmlString(string xml)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xml);
+
+            string xpath = "resource/module";
+            var nodes = xmlDoc.SelectNodes(xpath);
+
+            foreach (XmlNode node in nodes)
+            {
+                var name = node.Attributes["name"];                
+
+                if (name == null)
+                {
+                    continue;
+                }
+
+                var module = new BisqueAnalysis(name.Value);
+
+                foreach (XmlNode tagNode in node.ChildNodes)
+                {
+                    if (tagNode.Name != "tag")
+                        continue;
+
+                    if (tagNode.Attributes["name"] == null)
+                        continue;
+
+                    if (tagNode.Attributes["name"].Value != "inputs")
+                        continue;
+
+                    foreach(XmlNode inputNode in tagNode)
+                    {
+                        var inputName = node.Attributes["name"];
+                        var inputType = node.Attributes["type"];
+
+                    }
+                }
+
+                yield return module;
+            }
+        }
+
         public static void WriteTagsToXml(XmlDocument xmlDoc, IEnumerable<Tuple<string, string>> tags)
         {
             XmlNode tagsNode = xmlDoc.SelectSingleNode("image");

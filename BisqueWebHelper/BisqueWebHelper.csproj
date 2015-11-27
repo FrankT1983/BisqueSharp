@@ -43,10 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BisqueAnalysis.cs" />
     <Compile Include="BisqueImage.cs" />
     <Compile Include="BisqueImageResource.cs" />
     <Compile Include="BisqueServices\DataServiceHelper.cs" />
     <Compile Include="BisqueServices\ImageServiceHelper.cs" />
+    <Compile Include="BisqueServices\ModuleServiceHelper.cs" />
     <Compile Include="BisqueSession.cs" />
     <Compile Include="BisqueXmlHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

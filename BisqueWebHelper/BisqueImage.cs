@@ -67,9 +67,13 @@ namespace BisqueWebHelper
             return this.usedSession.GetXmlDocumentForTagManupulation(this.resource);
         }
 
+        /// <summary>
+        /// Sets the tags of this image from a given xml document.
+        /// </summary>
+        /// <param name="xml">The XML document.</param>
         public void SetTagsFromDocument(XmlDocument xml)
         {
-            this.usedSession.SetMetaData(this.resource, BisqueXmlHelper.XmlDocToString(xml));            
+            DataServiceHelper.SetMetaData(this.usedSession.Client, this.resource, BisqueXmlHelper.XmlDocToString(xml));            
         }
 
         public string Download(string v)

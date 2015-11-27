@@ -60,6 +60,13 @@
             return BisqueImage.ImagesFromResources(BisqueXmlHelper.ImagesFromXml(response.Content), this);
         }
 
+        public IEnumerable<BisqueAnalysis> GetAnalysisModuels()
+        {
+            var response = ModuleServiceHelper.GetAllModules(this.client);
+            
+            return BisqueXmlHelper.AnalysisModulesFromXmlString(response.Content);
+        }
+
         /// <summary>
         /// Uploads the image in the specified path to the server.
         /// </summary>
@@ -146,26 +153,7 @@
             var response = client.Execute(request);
             RestSharpHelpers.CheckResponse(response);            
             return response.Content;
-        }
-
-        /// <summary>
-        /// Sets the bisque metadata / tags of a file.
-        /// </summary>
-        /// <param name="file">The file.</param>
-        /// <param name="metaDataXml">The meta data XML.</param>
-        /// <returns></returns>
-        public void SetMetaData(BisqueImageResource file, string metaDataXml)
-        {
-            var request = new RestRequest("data_service/" + file.Id, Method.PUT);                       
-            request.AddHeader("content-type", "text/xml");
-            request.AddParameter("text/xml", metaDataXml, ParameterType.RequestBody);
-                       
-            var response = client.Execute(request);
-            RestSharpHelpers.CheckResponse(response);
-            var content = response.Content; // raw content as string
-
-            //Debug.WriteLine(response.StatusDescription + " " + content);            
-        }
+        }                 
 
         /// <summary>
         /// Gets an XML document containing the current tags of an image. 

@@ -1,5 +1,6 @@
 ﻿using BisqueWebHelper;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 
@@ -75,6 +76,18 @@ namespace BisqueWebTest
         {
             var file = this.session.GetImages().Last();
             var bytes = file.GetSlice(1,1,1,1);
+        }
+
+        private void ClickedGetModules(object sender, RoutedEventArgs e)
+        {
+            var resp = this.session.GetAnalysisModuels().ToArray();
+            var metaData = resp.FirstOrDefault(mod => mod.Name.Contains("MetaData"));
+            if (metaData != null)
+            {
+                var file = this.session.GetImages().Last();
+                metaData.ExecuteOnImage(this.session ,file);
+            }
+            
         }
     }
 }
